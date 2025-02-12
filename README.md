@@ -15,13 +15,13 @@
 ---
 
 ## **2.2. Анализ трафика и вовлеченности**  
-*(По данным [SimilarWeb](https://www.similarweb.com/website/amazon.com/) и внутренних отчетов Amazon)*  
-- **Всего посещений (за месяц):** 2.5B+ [(источник)](https://www.similarweb.com/website/amazon.com/)  
-- **Средняя продолжительность сеанса:** 10 минут [(источник)](https://www.similarweb.com/website/amazon.com/)  
-- **Среднее количество просмотров страниц за посещение:** 8+ [(источник)](https://www.similarweb.com/website/amazon.com/)  
-- **Процент отказов:** ~35% [(источник)](https://www.similarweb.com/website/amazon.com/)  
-- **Количество активных продавцов:** 9M+ [(источник)](https://www.marketplacepulse.com/amazon/number-of-sellers)  
-- **Пользователи Amazon Prime:** 200M+ [(источник)](https://www.aboutamazon.com/news/company-news/amazon-prime-has-more-than-200-million-members-globally)  
+*(По данным SimilarWeb [1](https://www.similarweb.com/website/amazon.com/)  и внутренних отчетов Amazon)*  
+- **Всего посещений (за месяц):** 2.5B+ [[1]](https://www.similarweb.com/website/amazon.com/)  
+- **Средняя продолжительность сеанса:** 10 минут [[1]](https://www.similarweb.com/website/amazon.com/)  
+- **Среднее количество просмотров страниц за посещение:** 8+ [[1]](https://www.similarweb.com/website/amazon.com/)  
+- **Процент отказов:** ~35% [[1]](https://www.similarweb.com/website/amazon.com/)  
+- **Количество активных продавцов:** 9M+ [[2]](https://www.marketplacepulse.com/amazon/number-of-sellers)  
+- **Пользователи Amazon Prime:** 200M+ [[3]](https://www.aboutamazon.com/news/company-news/amazon-prime-has-more-than-200-million-members-globally)  
 
 ---
 
@@ -71,4 +71,8 @@ MVP **Amazon** – это сложная **высоконагруженная с
 
 
 **Список источников:**
-1. https://amzscout.net/blog/amazon-statistics/#:~:text=It%20is%20estimated%20that%20the%20marketplace%20has%20over%20310%20million%20active%20users%20worldwide
+1. https://www.similarweb.com/website/amazon.com/
+2. https://www.marketplacepulse.com/amazon/number-of-sellers
+3. https://www.aboutamazon.com/news/company-news/amazon-prime-has-more-than-200-million-members-globally
+4. https://amzscout.net/blog/amazon-statistics/#:~:text=It%20is%20estimated%20that%20the%20marketplace%20has%20over%20310%20million%20active%20users%20worldwide
+5. https://www.demandsage.com/amazon-statistics/
