@@ -26,6 +26,9 @@
 
 ![amazon.com Web Traffic by Country](img/traffic_by_country.png)
 
+![amazon.com Website Traffic Demographics](img/demographics.png)
+
+
 ---
 
 ## **3. Функционал MVP**  
