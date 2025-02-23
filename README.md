@@ -23,6 +23,9 @@
 - **Количество активных продавцов:** 9M+ [[2]](https://www.marketplacepulse.com/amazon/number-of-sellers)  
 - **Пользователи Amazon Prime:** 200M+ [[3]](https://www.aboutamazon.com/news/company-news/amazon-prime-has-more-than-200-million-members-globally)  
 
+
+![amazon.com Web Traffic by Country](img/traffic_by_country.png)
+
 ---
 
 ## **3. Функционал MVP**  
