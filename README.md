@@ -246,8 +246,13 @@ DAU продавцов = 2.3M<br>
 
 ## **3.3. Глобальная балансировка нагрузки**
 
-- DNS-балансировка (например, через Amazon Route 53 или Cloudflare) для распределения трафика между датацентрами на основе геолокации пользователя.
+- DNS-балансировка Cloudflare для распределения трафика между датацентрами (на основе геолокации пользователя)
+- Amazon Route 53 latency-based DNS (на основе геолокации пользователя)
 - Использование health checks для автоматического перенаправления трафика в случае сбоя одного из датацентров.
+
+<b>Amazon Route 53</b> - Это надёжный DNS сервис, с достаточно удобным API для редактирования, добавления и удаления записей. [[13]](http://aws.amazon.com/route53/)
+
+<b>Cloudflare</b> — это глобальная сеть доставки контента (CDN), которая предоставляет решения для повышения безопасности и производительности веб-сайтов.[[14]](https://www.cloudflare.com/ru-ru/)
 
 ---
 
@@ -265,3 +270,5 @@ DAU продавцов = 2.3M<br>
 10. https://nichesources.com/amazon-return-rate.html#:~:text=Amazon's%20return%20rate%20for%20online,support%20can%20help%20reduce%20returns.
 11. https://amzscout.net/blog/amazon-statistics/
 12. https://shopney.co/blog/ultimate-guide-to-increase-add-to-cart-rates/
+13. http://aws.amazon.com/route53/
+14. https://www.cloudflare.com/ru-ru/
