@@ -213,6 +213,8 @@ DAU продавцов = 2.3M<br>
 ### **3.2. Выбрать физическое расположение датацентров (базово одного)**
 
 ![amazon server possible location](img/USA.png)
+![USA density](img/population.png)[https://worldpopulationreview.com/state-rankings/state-densities]
+![USA density](img/usa_internet.png)[https://www.internetexchangemap.com/]
 
 Для маркетплейса, расположенного в США, рекомендуется использовать несколько датацентров в разных регионах для обеспечения отказоустойчивости и низкой задержки. Основные регионы для размещения датацентров:
 
@@ -254,9 +256,7 @@ DAU продавцов = 2.3M<br>
 
 <b>Cloudflare</b> — это глобальная сеть доставки контента (CDN), которая предоставляет решения для повышения безопасности и производительности веб-сайтов.[[14]](https://www.cloudflare.com/ru-ru/)
 
-<script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Ae30de09e8a4fc91aff41144a1121aeade28f217b89bc021609c916332d3c920f&amp;width=100%25&amp;height=516&amp;lang=ru_RU&amp;scroll=true"></script>
-
-## <iframe src="https://yandex.ru/map-widget/v1/?um=constructor%3Ae30de09e8a4fc91aff41144a1121aeade28f217b89bc021609c916332d3c920f&amp;source=constructor" width="902" height="516" frameborder="0"></iframe>
+![amazon Cloud server location](img/AmazonCloud.png)
 
 ## **4. Локальная балансировка нагрузки** [[15]](https://docs.amazonaws.cn/en_us/eks/latest/userguide/aws-load-balancer-controller.html)
 
@@ -269,6 +269,8 @@ DAU продавцов = 2.3M<br>
 | Least Connection          | Оптимально для долгих соединений, так как учитывает текущие подключения | Возможны перегрузки при резких изменениях нагрузки |
 | Weighted Least Connection | Учитывает как текущие подключения, так и мощности серверов              | Сложность в настройке                              |
 | IP Hash                   | Клиент всегда подключается к одному и тому же серверу                   | Неравномерное распределение нагрузки               |
+
+![amazon load balancing](img/amazon_pod.png)
 
 ### **4.1. Выбрать схемы балансировки для входящих и межсервисных запросов**
 
