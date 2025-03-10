@@ -256,7 +256,7 @@ DAU продавцов = 2.3M<br>
 
 <script type="text/javascript" charset="utf-8" async src="https://api-maps.yandex.ru/services/constructor/1.0/js/?um=constructor%3Ae30de09e8a4fc91aff41144a1121aeade28f217b89bc021609c916332d3c920f&amp;width=100%25&amp;height=516&amp;lang=ru_RU&amp;scroll=true"></script>
 
----
+## <iframe src="https://yandex.ru/map-widget/v1/?um=constructor%3Ae30de09e8a4fc91aff41144a1121aeade28f217b89bc021609c916332d3c920f&amp;source=constructor" width="902" height="516" frameborder="0"></iframe>
 
 ## **4. Локальная балансировка нагрузки** [[15]](https://docs.amazonaws.cn/en_us/eks/latest/userguide/aws-load-balancer-controller.html)
 
