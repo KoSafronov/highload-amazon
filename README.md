@@ -307,6 +307,74 @@ DAU продавцов = 2.3M<br>
 
 ---
 
+## **5. Масштабирование баз данных**
+
+### **5.1 Описать логическую схему данных**
+
+![amazon db schema](img/dbdiagram.png)
+
+UUID:
+
+    user_id, seller_id, product_id, order_id, cart_id, review_id, logistics_id, image_id.
+
+INT:
+
+    stock_quantity (в таблице products), quantity (в таблицах order_items, cart_items).
+
+TIMESTAMP:
+
+    created_at, updated_at (во всех таблицах).
+
+DECIMAL:
+
+    price, total_amount, rating (в таблицах products, orders, sellers, reviews).
+
+TEXT:
+
+    description (в таблице products), comment (в таблице reviews).
+
+BOOLEAN:
+
+    is_primary (в таблице product_images).
+
+| Таблица        | Размер строки (байт) | Количество записей в сутки | Общий объем в сутки (байт) |
+| -------------- | -------------------- | -------------------------- | -------------------------- |
+| users          | 211                  | 200,000                    | 42,200,000                 |
+| sellers        | 155                  | 3,700                      | 573,500                    |
+| products       | 718                  | 200,000                    | 143,600,000                |
+| product_images | 249                  | 1,200,000                  | 298,800,000                |
+| orders         | 76                   | 12,000,000                 | 912,000,000                |
+| order_items    | 60                   | 36,000,000                 | 2,160,000,000              |
+| cart           | 48                   | 200,000                    | 9,600,000                  |
+| cart_items     | 52                   | 600,000                    | 31,200,000                 |
+| reviews        | 568                  | 26,000                     | 14,768,000                 |
+| review_images  | 248                  | 52,000                     | 12,896,000                 |
+| logistics      | 118                  | 1,760,000                  | 207,680,000                |
+
+<b>users</b> 16 (UUID) + 50 (name) + 50 (email) + 15 (phone) + 64 (password_hash) + 8 (created_at) + 8 (updated_at) = 211
+
+<b>sellers</b> 16 (UUID) + 50 (company_name) + 50 (contact_email) + 15 (contact_phone) + 8 (rating) + 8 (created_at) + 8 (updated_at) = 155
+
+<b>products</b> 16 (UUID) + 16 (seller_id) + 100 (name) + 500 (description) + 8 (price) + 50 (category) + 4 (stock_quantity) + 8 (rating) + 8 (created_at) + 8 (updated_at) = 718
+
+<b>product_images</b> 16 (UUID) + 16 (product_id) + 200 (image_url) + 1 (is_primary) + 8 (created_at) + 8 (updated_at) = 249
+
+<b>orders</b> 16 (UUID) + 16 (user_id) + 20 (status) + 8 (total_amount) + 8 (created_at) + 8 (updated_at) = 76
+
+<b>order_items</b> 16 (UUID) + 16 (order_id) + 16 (product_id) + 4 (quantity) + 8 (price_at_purchase) = 60
+
+<b>cart</b> 16 (UUID) + 16 (user_id) + 8 (created_at) + 8 (updated_at) = 48
+
+<b>cart_items</b> 16 (UUID) + 16 (cart_id) + 16 (product_id) + 4 (quantity) = 52
+
+<b>reviews</b> 16 (UUID) + 16 (user_id) + 16 (product_id) + 4 (rating) + 500 (comment) + 8 (created_at) + 8 (updated_at) = 568
+
+<b>review_images</b> 16 (UUID) + 16 (review_id) + 200 (image_url) + 8 (created_at) + 8 (updated_at) = 248
+
+<b>logistics</b> 16 (UUID) + 16 (order_id) + 50 (tracking_number) + 20 (status) + 8 (shipped_at) + 8 (delivered_at) = 118
+
+---
+
 ## **Список источников:**
 
 0. https://www.amazon.com/
