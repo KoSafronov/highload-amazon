@@ -374,6 +374,14 @@ BOOLEAN:
 <b>logistics</b> 16 (UUID) + 16 (order_id) + 50 (tracking_number) + 20 (status) + 8 (shipped_at) + 8 (delivered_at) = 118
 
 ---
+## **6. Новая база данных**
+
+### **6.1 Описать обновленную схему данных**
+
+
+![amazon new db schema](img/db_6_.png)
+
+---
 
 ## **Список источников:**
 

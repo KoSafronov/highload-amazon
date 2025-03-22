@@ -1,0 +1,156 @@
+Table users {
+  user_id UUID [pk]
+  name String
+  email String [unique]
+  phone String [unique]
+  password_hash String
+  is_blocked Boolean [default: false]
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table sellers {
+  seller_id UUID [pk]
+  company_name String
+  contact_email String
+  contact_phone String
+  rating Decimal
+  is_blocked Boolean [default: false]
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table categories {
+  category_id UUID [pk]
+  name String [unique]
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table products {
+  product_id UUID [pk]
+  seller_id UUID [ref: > sellers.seller_id]
+  name String
+  description Text
+  price Decimal
+  stock_quantity Integer
+  rating Decimal
+  is_blocked Boolean [default: false]
+  is_age_restricted Boolean [default: false]
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table product_categories {
+  product_category_id UUID [pk]
+  product_id UUID [ref: > products.product_id]
+  category_id UUID [ref: > categories.category_id]
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table product_images {
+  image_id UUID [pk]
+  product_id UUID [ref: > products.product_id]
+  image_url String
+  is_primary Boolean [default: false]
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table orders {
+  order_id UUID [pk]
+  user_id UUID [ref: > users.user_id]
+  status String
+  total_amount Decimal
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table order_items {
+  order_item_id UUID [pk]
+  order_id UUID [ref: > orders.order_id]
+  product_id UUID [ref: > products.product_id]
+  quantity Integer
+  price_at_purchase Decimal
+  purchase_date Timestamp  // Дата покупки товара
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table cart {
+  cart_id UUID [pk]
+  user_id UUID [ref: > users.user_id]
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table cart_items {
+  cart_item_id UUID [pk]
+  cart_id UUID [ref: > cart.cart_id]
+  product_id UUID [ref: > products.product_id]
+  quantity Integer
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table reviews {
+  review_id UUID [pk]
+  user_id UUID [ref: > users.user_id]
+  product_id UUID [ref: > products.product_id]
+  order_item_id UUID [ref: > order_items.order_item_id]  // Связь с заказом
+  rating Integer
+  comment Text
+  status String [default: "pending"]  // Статус отзыва
+  deleted_by String [null]  // Кто удалил отзыв
+  created_at Timestamp
+  updated_at Timestamp
+  seller_id UUID [ref: > sellers.seller_id]  // Избыточное поле для упрощения запросов
+  user_name String  // Избыточное поле для упрощения запросов
+  product_name String  // Избыточное поле для упрощения запросов
+}
+
+Table review_images {
+  image_id UUID [pk]
+  review_id UUID [ref: > reviews.review_id]
+  image_url String
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table logistics {
+  logistics_id UUID [pk]
+  order_id UUID [ref: > orders.order_id]
+  tracking_number String
+  status String
+  shipped_at Timestamp
+  delivered_at Timestamp
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table sessions {
+  session_id UUID [pk]
+  user_id UUID [ref: > users.user_id]
+  session_token String [unique]
+  expires_at Timestamp
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table auth_tokens {
+  token_id UUID [pk]
+  user_id UUID [ref: > users.user_id]
+  token String [unique]
+  token_type String
+  expires_at Timestamp
+  created_at Timestamp
+  updated_at Timestamp
+}
+
+Table product_search_index {
+  search_id UUID [pk]
+  product_id UUID [ref: > products.product_id]
+  search_data Jsonb
+  indexed_at Timestamp
+}
