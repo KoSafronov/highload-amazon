@@ -379,7 +379,7 @@ BOOLEAN:
 ### **6.1 Описать обновленную схему данных**
 
 
-![amazon new db schema](img/db_6_.png)
+![amazon new db schema](img/db_6.png)
 
 ---
 
