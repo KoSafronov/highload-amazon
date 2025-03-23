@@ -14,7 +14,8 @@
 
 # **Описание онлайн-платформы Amazon (MVP)**
 
-#block1
+
+<a name="block1"></a>
 ## **1. Тема и целевая аудитория**
 
 ### **1.1 Тема**
@@ -80,7 +81,8 @@ _(По данным SimilarWeb [1](https://www.similarweb.com/website/amazon.com
 - Управление складами (**FBA — Fulfillment by Amazon**)
 
 ---
-#block2
+
+<a name="block2"></a>
 ## **2. Расчет нагрузки**
 
 ### **2.1 Продуктовые метрики**
@@ -204,7 +206,8 @@ DAU продавцов = 2.3M<br>
 Сеть x3 total = 26.50 Гб/сек.<br>
 
 ---
-#block3
+
+<a name="block3"></a>
 ## **3. Глобальная балансировка нагрузки**
 
 ### **3.1. Разделить трафик на группы по характеру нагрузки**
@@ -280,7 +283,8 @@ DAU продавцов = 2.3M<br>
 
 ![amazon Cloud server location](img/AmazonCloud.png)
 
-#block4
+
+<a name="block4"></a>
 ## **4. Локальная балансировка нагрузки** [[15]](https://docs.amazonaws.cn/en_us/eks/latest/userguide/aws-load-balancer-controller.html)
 
 ### Алгоритмы балансировки нагрузки
@@ -320,7 +324,8 @@ DAU продавцов = 2.3M<br>
 - <b>Если сервер обрабатывает 100K RPS, </b><br>требуется 100 vCPU ALB.
 
 ---
-#block5
+
+<a name="block5"></a>
 ## **5. Масштабирование баз данных**
 
 ### **5.1 Описать логическую схему данных**
@@ -388,7 +393,8 @@ BOOLEAN:
 <b>logistics</b> 16 (UUID) + 16 (order_id) + 50 (tracking_number) + 20 (status) + 8 (shipped_at) + 8 (delivered_at) = 118
 
 ---
-#block6
+
+<a name="block6"></a>
 ## **6. Выбор баз данных**
 
 ![amazon new db schema](img/db_6.png)
