@@ -985,194 +985,192 @@ erDiagram
 Кэш рекомендаций Redis Персонализированные данные, быстрый доступ
 Аналитика Redshift OLAP-обработка, большие объемы данных
 
-````
-
+```
 mermaid
 erDiagram
-users ||--o{ orders : "places"
-users ||--o{ cart : "owns"
-users ||--o{ reviews : "writes"
-users ||--o{ addresses : "has"
-users ||--o{ payment_methods : "has"
+  users ||--o{ orders : "places"
+  users ||--o{ cart : "owns"
+  users ||--o{ reviews : "writes"
+  users ||--o{ addresses : "has"
+  users ||--o{ payment_methods : "has"
 
-    sellers ||--o{ products : "sells"
-    sellers ||--o{ reviews : "receives"
+      sellers ||--o{ products : "sells"
+      sellers ||--o{ reviews : "receives"
 
-    products ||--o{ product_categories : "categorized"
-    products ||--o{ order_items : "ordered"
-    products ||--o{ cart_items : "in_cart"
-    products ||--o{ reviews : "reviewed"
-    products ||--o{ product_attributes : "has"
+      products ||--o{ product_categories : "categorized"
+      products ||--o{ order_items : "ordered"
+      products ||--o{ cart_items : "in_cart"
+      products ||--o{ reviews : "reviewed"
+      products ||--o{ product_attributes : "has"
 
-    categories ||--o{ product_categories : "contains"
+      categories ||--o{ product_categories : "contains"
 
-    orders ||--o{ order_items : "contains"
-    orders ||--o{ shipments : "has"
-    orders ||--o{ payments : "has"
+      orders ||--o{ order_items : "contains"
+      orders ||--o{ shipments : "has"
+      orders ||--o{ payments : "has"
 
-    cart ||--o{ cart_items : "contains"
+      cart ||--o{ cart_items : "contains"
 
-    products }|--|| inventory : "stock"
+      products }|--|| inventory : "stock"
 
-    users {
-        UUID user_id PK
-        String name
-        String email UK
-        String phone UK
-        String password_hash
-        Boolean is_blocked
-        Timestamp created_at
-        Timestamp updated_at
-        Jsonb metadata
+      users {
+          UUID user_id PK
+          String name
+          String email UK
+          String phone UK
+          String password_hash
+          Boolean is_blocked
+          Timestamp created_at
+          Timestamp updated_at
+          Jsonb metadata
+      }
+
+      sellers {
+          UUID seller_id PK
+          String company_name
+          String contact_email
+          String contact_phone
+          Decimal rating
+          Integer total_products
+          Boolean is_verified
+          Timestamp created_at
+          Timestamp updated_at
+      }
+
+      products {
+          UUID product_id PK
+          UUID seller_id FK
+          String name
+          String description_short
+          Text description_full
+          Decimal price
+          Decimal discount_price
+          String main_image_url
+          String[] gallery_image_urls
+          Decimal rating
+          Integer review_count
+          Boolean is_age_restricted
+          Timestamp created_at
+          Timestamp updated_at
+      }
+
+      product_details {
+          UUID product_id PK,FK
+          Jsonb specifications
+          Jsonb features
+          Text warranty_info
+          Text shipping_info
+          String[] tags
+      }
+
+      inventory {
+          UUID inventory_id PK
+          UUID product_id FK
+          Integer warehouse_qty
+          Integer reserved_qty
+          Integer in_transit_qty
+          Timestamp last_restock
+      }
+
+      categories {
+          UUID category_id PK
+          String name
+          String path
+          UUID parent_id FK
+          Integer product_count
+      }
+
+      orders {
+          UUID order_id PK
+          UUID user_id FK
+          String status
+          Decimal subtotal
+          Decimal tax
+          Decimal shipping_cost
+          Decimal total
+          Timestamp created_at
+          Timestamp updated_at
+      }
+
+      order_items {
+          UUID order_item_id PK
+          UUID order_id FK
+          UUID product_id FK
+          String product_name
+          String product_image
+          Decimal unit_price
+          Integer quantity
+          Decimal total_price
+      }
+
+      cart {
+          UUID cart_id PK
+          UUID user_id FK
+          Timestamp updated_at
+      }
+
+      cart_items {
+          UUID cart_item_id PK
+          UUID cart_id FK
+          UUID product_id FK
+          Integer quantity
+          Timestamp added_at
+      }
+
+      reviews {
+          UUID review_id PK
+          UUID user_id FK
+          UUID product_id FK
+          UUID order_id FK
+          Integer rating
+          String title
+          Text comment
+          String[] images
+          Boolean is_verified
+          Timestamp created_at
+      }
+
+      addresses {
+          UUID address_id PK
+          UUID user_id FK
+          String type
+          String recipient
+          String line1
+          String line2
+          String city
+          String state
+          String postal_code
+          String country
+          String phone
+          Boolean is_default
+      }
+
+      payment_methods {
+          UUID payment_method_id PK
+          UUID user_id FK
+          String type
+          Jsonb details
+          Boolean is_default
+          Timestamp added_at
+      }
+
+      shipments {
+          UUID shipment_id PK
+          UUID order_id FK
+          String carrier
+          String tracking_number
+          String status
+          Timestamp shipped_at
+          Timestamp estimated_delivery
+          Timestamp delivered_at
+      }
+
+      search_index {
+          UUID product_id PK,FK
+          String search_vector
+          String[] suggest_terms
+          Jsonb facets
     }
-
-    sellers {
-        UUID seller_id PK
-        String company_name
-        String contact_email
-        String contact_phone
-        Decimal rating
-        Integer total_products
-        Boolean is_verified
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    products {
-        UUID product_id PK
-        UUID seller_id FK
-        String name
-        String description_short
-        Text description_full
-        Decimal price
-        Decimal discount_price
-        String main_image_url
-        String[] gallery_image_urls
-        Decimal rating
-        Integer review_count
-        Boolean is_age_restricted
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    product_details {
-        UUID product_id PK,FK
-        Jsonb specifications
-        Jsonb features
-        Text warranty_info
-        Text shipping_info
-        String[] tags
-    }
-
-    inventory {
-        UUID inventory_id PK
-        UUID product_id FK
-        Integer warehouse_qty
-        Integer reserved_qty
-        Integer in_transit_qty
-        Timestamp last_restock
-    }
-
-    categories {
-        UUID category_id PK
-        String name
-        String path
-        UUID parent_id FK
-        Integer product_count
-    }
-
-    orders {
-        UUID order_id PK
-        UUID user_id FK
-        String status
-        Decimal subtotal
-        Decimal tax
-        Decimal shipping_cost
-        Decimal total
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    order_items {
-        UUID order_item_id PK
-        UUID order_id FK
-        UUID product_id FK
-        String product_name
-        String product_image
-        Decimal unit_price
-        Integer quantity
-        Decimal total_price
-    }
-
-    cart {
-        UUID cart_id PK
-        UUID user_id FK
-        Timestamp updated_at
-    }
-
-    cart_items {
-        UUID cart_item_id PK
-        UUID cart_id FK
-        UUID product_id FK
-        Integer quantity
-        Timestamp added_at
-    }
-
-    reviews {
-        UUID review_id PK
-        UUID user_id FK
-        UUID product_id FK
-        UUID order_id FK
-        Integer rating
-        String title
-        Text comment
-        String[] images
-        Boolean is_verified
-        Timestamp created_at
-    }
-
-    addresses {
-        UUID address_id PK
-        UUID user_id FK
-        String type
-        String recipient
-        String line1
-        String line2
-        String city
-        String state
-        String postal_code
-        String country
-        String phone
-        Boolean is_default
-    }
-
-    payment_methods {
-        UUID payment_method_id PK
-        UUID user_id FK
-        String type
-        Jsonb details
-        Boolean is_default
-        Timestamp added_at
-    }
-
-    shipments {
-        UUID shipment_id PK
-        UUID order_id FK
-        String carrier
-        String tracking_number
-        String status
-        Timestamp shipped_at
-        Timestamp estimated_delivery
-        Timestamp delivered_at
-    }
-
-    search_index {
-        UUID product_id PK,FK
-        String search_vector
-        String[] suggest_terms
-        Jsonb facets
-    }
-
 ```
 
 ---
@@ -1196,3 +1194,4 @@ users ||--o{ payment_methods : "has"
 14. https://www.cloudflare.com/ru-ru/
 15. https://docs.amazonaws.cn/en_us/eks/latest/userguide/aws-load-balancer-controller.html
 ```
+````
