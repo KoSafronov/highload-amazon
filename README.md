@@ -810,6 +810,8 @@ BOOLEAN:
 | payment_methods    | PostgreSQL (encrypted)     | Требования безопасности                                      | Шифрование на уровне СУБД                    |
 | shipments          | Cassandra                  | Высокая частота обновлений статусов                          | Time-series оптимизация                      |
 | search_index       | Elasticsearch              | Полнотекстовый поиск и фасеты                                | 3 реплики на кластер                         |
+| seller_ratings	   | PostgreSQL	              | Колокация с sellers                                          | автоматическое обновление при новых отзывах  |
+| product_ratings	   | Cassandra	                 | Колокация с products                                         | материализованное представление              | 
 
 #### Шардирование и резервирование СУБД (потаблично)
 
