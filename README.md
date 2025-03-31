@@ -985,8 +985,8 @@ erDiagram
 Кэш рекомендаций Redis Персонализированные данные, быстрый доступ
 Аналитика Redshift OLAP-обработка, большие объемы данных
 
-```
-mermaid
+
+```mermaid
 erDiagram
   users ||--o{ orders : "places"
   users ||--o{ cart : "owns"
