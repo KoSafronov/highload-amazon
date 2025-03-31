@@ -788,7 +788,7 @@ BOOLEAN:
 
 ---
 
-![DB scheme](img/upd_db_2025-03-31_1.png)
+<!-- ![DB scheme](img/upd_db_2025-03-31_1.png) -->
 ![DB scheme](img/db_type.png)
 
 ---
