@@ -1681,130 +1681,133 @@ erDiagram
 
 ## **7. Алгоритмы**
 
-### Алгоритмы управления ресурсами в высоконагруженном сервисе (аналог Titus от Netflix)
+# Алгоритмы для высоконагруженной системы Amazon-подобного маркетплейса
 
-#### 1. **Проблема: Шум когерентности (Coherence Noise)**
+## 1. Этап Retrieval (Поиск и извлечение товаров)
 
-**Контекст:**
+### 1.1. Text Preprocessing (Предобработка текста)
+- **Нормализация запроса**: приведение к нижнему регистру, удаление стоп-слов, стемминг
+- **Извлечение сущностей**: бренды, категории, атрибуты с помощью NLP-моделей
+- **Генерация синонимов**: расширение запроса через синонимизатор на основе Word2Vec/GloVe
 
-- Современные CPU с NUMA-архитектурой имеют иерархию кэшей (L1/L2 — ядро, L3 — сокет)
-- Гипертреды разделяют кэши L1/L2, что приводит к конкуренции за ресурсы
-- Контейнеры, размещенные на одном сокете, создают interference noise из-за:
-  - Перегрузки шины памяти
-  - Инвалидации кэш-линий
-  - Contention на общих ресурсах (например, LLC)
+### 1.2. Кэширование результатов (Redis)
+- **Многоуровневое кэширование**:
+  - L1: Local cache (Guava/Caffeine) - 5ms TTL
+  - L2: Redis Cluster - 1 час TTL для популярных запросов
+  - L3: Elasticsearch - актуальные данные
+- **Ключи кэша**: хэш MD5 от нормализованного запроса + геолокация + языковая модель
 
-**Пример плохого распределения:**
+### 1.3. Поиск в Elasticsearch
+- **Индексация**:
+  - Основные поля: title^3, description^2, brand^4, category^3
+  - Nested-поля для атрибутов (color, size и т.д.)
+  - Suggesters для автодополнения
+- **Поисковые алгоритмы**:
+  - **BM25** - основной алгоритм релевантности
+  - **Learning to Rank (LTR)** - ML-модель для улучшения ранжирования
+  - **Vector Search** - поиск по семантической близости через dense embeddings
 
-```mermaid
-graph TD
-    Socket0[Сокет 0 (L3 Shared)] --> Core0[Ядро 0]
-    Core0 --> ThreadA[Контейнер A]
-    Core0 --> ThreadB[Контейнер B]
-    Socket0 --> Core1[Ядро 1]
-    Core1 --> ThreadC[Контейнер A]
-    Core1 --> ThreadD[Контейнер B]
-```
+### 1.4. Персонализация (ClickHouse + ML)
+- **Сбор данных**:
+  ```sql
+  CREATE TABLE user_behavior (
+    user_id UUID,
+    product_id UUID,
+    event_type Enum('view', 'cart', 'purchase'),
+    event_time DateTime,
+    -- Дополнительные контекстные данные
+    INDEX idx_user_product (user_id, product_id) TYPE bloom_filter
+  ) ENGINE = ReplacingMergeTree
+  ORDER BY (user_id, event_time)
+  ```
+- **ML-модель** (TensorFlow/PyTorch):
+  - Input: история просмотров + текущий запрос
+  - Архитектура: Two-Tower (User Tower + Item Tower)
+  - Обучение: онлайн-обучение с подкреплением
 
-#### 2. **Алгоритм: Dynamic NUMA-Aware Scheduler (DNAS)**
-
-**Принципы работы:**
-
-1. **Классификация нагрузок**:
-
-   - **Latency-Sensitive (LS)**: Микросервисы API (требуют низких задержек)
-   - **Throughput-Optimized (TO)**: Пакетная обработка (требуют высокой пропускной способности)
-
-2. **Распределение ресурсов**:
+## 2. Этап Ranking (Ранжирование товаров)
 
 ```python
-def allocate_container(container):
-    if container.type == "LS":
-        # Выделяем выделенные ядра без гипертредов
-        cores = get_dedicated_cores(socket=least_loaded_numa_node())
-        assign_cpuset(container, cores)
-    else:
-        # Используем гипертреды на менее загруженном сокете
-        cores = get_hyperthreads(socket=find_underutilized_socket())
-        assign_cpuset(container, cores)
+def rank_products(products, user_context):
+    # Базовые факторы
+    relevance_score = bm25_score(query, product)
+    popularity_score = log(product.views + 1)
+    
+    # Коммерческие факторы
+    conversion_rate = product.purchases / product.views
+    profit_margin = product.price - product.cost
+    
+    # Персонализация
+    personalization_score = model.predict(user_id, product_id)
+    
+    # Итоговый score
+    final_score = (
+        0.4 * relevance_score +
+        0.2 * popularity_score +
+        0.15 * conversion_rate +
+        0.1 * profit_margin +
+        0.15 * personalization_score
+    )
+    return final_score
 ```
 
-3. **Метрики оптимизации**:
-   - LLC Miss Rate (<5% для LS-контейнеров)
-   - IPC (Instructions Per Cycle) > 2.5 для TO-контейнеров
-   - NUMA Distance Penalty (минимизация межсокетных обращений)
 
-#### 3. **Реализация на Linux**:
+## 3. Алгоритмы рекомендаций
 
-**Компоненты:**
+### 3.1. **Похожие товары** (Item-to-Item CF):
+   - Косинусная близость по co-view/co-purchase
+   - ANN (Approximate Nearest Neighbors) через FAISS
 
-- **cgroups v2** для изоляции CPU
-- **eBPF-пробы** для мониторинга:
-  ```c
-  // Отслеживание LLC misses
-  SEC("perf_event/llc_miss")
-  int bpf_llc_miss(struct bpf_perf_event_data *ctx) {
-      u32 cpu = bpf_get_smp_processor_id();
-      u64 *count = bpf_map_lookup_elem(&llc_misses, &cpu);
-      if (count) (*count)++;
-      return 0;
-  }
-  ```
-- **Алгоритм балансировки**:
-  ```go
-  func rebalance() {
-      for {
-          stats := collect_metrics()
-          if stats.llc_miss > THRESHOLD {
-              migrate_container(stats.container, target_numa_node())
-          }
-          time.Sleep(10 * time.Second)
-      }
-  }
-  ```
+### 3.2. **Персональные рекомендации**:
+   - Matrix Factorization (ALS)
+   - Deep Learning (Wide & Deep модель)
 
-#### 4. **Сравнение с CFS**:
+### 3.3. **Сезонные/трендовые**:
+   - Анализ временных рядов (Prophet)
+   - Тренд-детекция через Spark Streaming
 
-| Параметр        | CFS                | DNAS                       |
-| --------------- | ------------------ | -------------------------- |
-| Частота решений | Каждые 5 мс        | Каждые 10 сек              |
-| Учет топологии  | Нет                | NUMA-aware                 |
-| Приоритизация   | По vruntime        | По классу нагрузки (LS/TO) |
-| Overhead        | Высокий (O(log n)) | Низкий (O(1) для миграций) |
 
-#### 5. **Пример работы**:
+## 4. Алгоритмы инвентаризации
 
-1. **Детекция аномалии**:
-   - Контейнер API-gateway имеет рост LLC misses до 15%
-2. **Принятие решения**:
-   - Модель предсказывает необходимость миграции на отдельный сокет
-3. **Действие**:
-   ```bash
-   echo "migrate 1234 numa_node=1" > /sys/fs/cgroup/dnas/actions
-   ```
-4. **Результат**:
-   - Задержка API снижается с 50ms до 12ms
-   - Пропускная способность LLC увеличивается на 40%
+- **Методы**:
+  - ARIMA для стабильных товаров
+  - LSTM для товаров с нерегулярным спросом
+  - Ensemble-модели для новых товаров
 
-#### 6. **Оптимизации для СУБД**:
 
-Для PostgreSQL (шард users на NUMA-узле 0):
+## 5. Алгоритмы ценообразования
 
-```sql
-ALTER SYSTEM SET numa_memory_preferred_node = 0;
+- **Факторы**:
+  - Спрос/предложение в реальном времени
+  - Цены конкурентов (web scraping)
+  - Остаток срока действия акции
+
+
+
+## 6. Алгоритмы фрод-детекции
+
+- **Правила**: velocity checks, geolocation mismatch
+- **ML-модели**:
+  - GBM (Gradient Boosting) для статического анализа
+  - LSTM для анализа последовательностей действий
+
+
+## 7. Оптимизации для высокой нагрузки
+
+### 7.1. Read/Write оптимизации
+- **CQRS**: отдельные модели для чтения и записи
+- **Event Sourcing**: все изменения как последовательность событий
+- **Materialized Views**: предрассчитанные агрегаты в ClickHouse
+
+### 7.2. Горизонтальное масштабирование
+- **Sharding**:
+  - Пользователи: по user_id
+  - Товары: по category_id
+- **Репликация**: Multi-AZ deployment с quorum reads
+
+
 ```
 
-Для Redis:
-
-```bash
-taskset -c 0-3 redis-server --bind_cpu 0-3
-```
-
-**Ключевые преимущества**:
-
-- Снижение interference noise на 60-70%
-- Гарантированная пропускная способность для критичных контейнеров
-- Автоматическая адаптация к изменению нагрузок
 
 ---
 
