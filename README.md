@@ -806,11 +806,11 @@ BOOLEAN:
 | cart               | Redis                      | Временные данные, высокая частота обновлений                 | TTL 30 дней                                  |
 | cart_items         | Redis                      | Частые обновления                                            | Хранение как хэш-карта                       |
 | reviews            | MongoDB (шардированный)    | Гибкая схема, частые агрегации                               | Шардирование по product_id                   |
-| addresses          | PostgreSQL                 | Средняя частота обновлений                                   | Локальность с users                          |
+| addresses          | MongoDB                    | Средняя частота обновлений                                   | Встроенная поддержка геоиндексов (2dsphere)  |
 | payment_methods    | PostgreSQL (encrypted)     | Требования безопасности                                      | Шифрование на уровне СУБД                    |
 | shipments          | Cassandra                  | Высокая частота обновлений статусов                          | Time-series оптимизация                      |
 | search_index       | Elasticsearch              | Полнотекстовый поиск и фасеты                                | 3 реплики на кластер                         |
-| seller_ratings	   | PostgreSQL	              | Колокация с sellers                                          | автоматическое обновление при новых отзывах  |
+| seller_ratings	   | Redis	                    | Колокация с sellers                                          | автоматическое обновление при новых отзывах  |
 | product_ratings	   | Cassandra	                 | Колокация с products                                         | материализованное представление              | 
 
 #### Шардирование и резервирование СУБД (потаблично)
