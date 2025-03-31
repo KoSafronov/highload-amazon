@@ -10,6 +10,7 @@
 - [4. Локальная балансировка нагрузки](#block4)
 - [5. Масштабирование баз данных](#block5)
 - [6. Выбор баз данных](#block6)
+- [7. Алгоритмы](#block7)
 
 # **Описание онлайн-платформы Amazon (MVP)**
 
@@ -400,6 +401,7 @@ BOOLEAN:
 
 ## **6. Выбор баз данных**
 
+<!--
 ![amazon new db schema](img/db_6.png)
 
 ### Описание таблиц базы данных
@@ -645,8 +647,9 @@ BOOLEAN:
 
 ### 6.1 Описание физической схемы данных
 
-#### Индексы
+#### Индексы -->
 
+<!--
 Для оптимизации запросов и повышения производительности базы данных Amazon необходимо создать следующие индексы:
 
 1. **users.email** — уникальный индекс для быстрой аутентификации и поиска пользователей по email.
@@ -655,14 +658,15 @@ BOOLEAN:
 4. **categories.name** — индекс для быстрого поиска и фильтрации по категориям.
 5. **reviews.product_id**, **reviews.user_id** — индексы для ускорения поиска отзывов по товарам и пользователям.
 6. **sessions.session_token** — уникальный индекс для быстрого поиска активных сессий по токену.
-7. **logistics.tracking_number** — индекс для быстрого поиска посылок по номеру отслеживания.
+7. **logistics.tracking_number** — индекс для быстрого поиска посылок по номеру отслеживания. -->
+<!--
 
 #### Выбор СУБД (потаблично)
 
 Для каждой таблицы выбирается наиболее подходящая СУБД с учетом характера данных и нагрузки:
 
 | Таблица                  | Описание                                                              | Выбор СУБД    |
-| ------------------------ | --------------------------------------------------------------------- | ------------- |
+| ------------------------ | --------------------------------------------------------------------- | ------------- | --- |
 | **users**                | Содержит информацию о пользователях: email, имя, пароль и т.д.        | PostgreSQL    |
 | **sellers**              | Хранит данные о продавцах: название компании, контакты, рейтинг.      | PostgreSQL    |
 | **categories**           | Иерархическая структура категорий товаров.                            | PostgreSQL    |
@@ -679,8 +683,9 @@ BOOLEAN:
 | **sessions**             | Хранит данные о сессиях пользователей: токен, время истечения.        | Redis         |
 | **auth_tokens**          | Хранит токены аутентификации пользователей.                           | Redis         |
 | **product_search_index** | Данные для полнотекстового поиска по товарам.                         | Elasticsearch |
-| **product_media**        | Связь между товарами и медиафайлами (изображения, видео).             | AWS S3        |
+| **product_media**        | Связь между товарами и медиафайлами (изображения, видео).             | AWS S3        | --> |
 
+<!--
 #### Шардирование и резервирование СУБД (потаблично)
 
 Для обеспечения отказоустойчивости и масштабируемости применяются следующие стратегии:
@@ -707,9 +712,9 @@ BOOLEAN:
 
 5. **product_media**:
    - **Шардирование**: Хранение медиафайлов в AWS S3 с распределением по регионам.
-   - **Резервирование**: Использование S3 Cross-Region Replication для резервирования данных.
+   - **Резервирование**: Использование S3 Cross-Region Replication для резервирования данных. -->
 
-#### Клиентские библиотеки / интеграции
+<!-- #### Клиентские библиотеки / интеграции
 
 Для работы с выбранными СУБД используются следующие библиотеки и инструменты:
 
@@ -779,212 +784,707 @@ BOOLEAN:
 - **Репликация**: Все СУБД поддерживают репликацию для обеспечения отказоустойчивости.
 - **Автоматический failover**: MongoDB Replica Sets и Redis Cluster обеспечивают автоматическое переключение в случае сбоя.
 - **Резервное копирование**: Регулярное создание бэкапов и их хранение в облачном хранилище.
-- **Мониторинг**: Использование инструментов мониторинга (Prometheus, Grafana) для отслеживания состояния баз данных и своевременного реагирования на сбои.
+- **Мониторинг**: Использование инструментов мониторинга (Prometheus, Grafana) для отслеживания состояния баз данных и своевременного реагирования на сбои. -->
+
+---
+
+![amazon.com Website Traffic Demographics](img/upd_db_2025-03-31.png)
+
+---
+
+| Таблица            | СУБД                       | Обоснование                                                  | Оптимизации для нагрузки                     |
+| ------------------ | -------------------------- | ------------------------------------------------------------ | -------------------------------------------- |
+| users              | PostgreSQL (шардированный) | ACID требования, частые обновления профиля                   | Шардирование по user_id                      |
+| sellers            | PostgreSQL                 | Транзакционные данные, средняя частота обновлений            | Реплика для чтения                           |
+| products           | Cassandra                  | Высокая доступность, частые чтения, глобальное распределение | Шардирование по category_id + seller_id      |
+| product_details    | Cassandra                  | Часто читаются вместе с products                             | Colocated с products                         |
+| inventory          | DynamoDB                   | Высокая частота обновлений, необходимость атомарных операций | Глобальные вторичные индексы                 |
+| categories         | PostgreSQL                 | Редкие обновления, иерархические запросы                     | Materialized Path для иерархий               |
+| product_categories | Cassandra                  | Только для поиска по категориям                              | Денормализовано в products                   |
+| orders             | DynamoDB                   | Высокая запись, глобальное распределение                     | Шардирование по user_id + временной диапазон |
+| order_items        | DynamoDB                   | Colocated с orders                                           | Дублирование product_name/image              |
+| cart               | Redis                      | Временные данные, высокая частота обновлений                 | TTL 30 дней                                  |
+| cart_items         | Redis                      | Частые обновления                                            | Хранение как хэш-карта                       |
+| reviews            | MongoDB (шардированный)    | Гибкая схема, частые агрегации                               | Шардирование по product_id                   |
+| addresses          | PostgreSQL                 | Средняя частота обновлений                                   | Локальность с users                          |
+| payment_methods    | PostgreSQL (encrypted)     | Требования безопасности                                      | Шифрование на уровне СУБД                    |
+| shipments          | Cassandra                  | Высокая частота обновлений статусов                          | Time-series оптимизация                      |
+| search_index       | Elasticsearch              | Полнотекстовый поиск и фасеты                                | 3 реплики на кластер                         |
+
+#### Шардирование и резервирование СУБД (потаблично)
+
+1. **Таблицы в PostgreSQL (ACID-транзакции, часто обновляемые данные)**
+
+   - **users (пользователи)**
+
+     - Шардирование: **user_id**
+     - Резервирование: **3 реплики** (1 мастер + 2 реплики для чтения).
+
+   - **sellers (продавцы)**
+
+     - Шардирование: **seller_id**
+     - Резервирование: **2 реплики** (1 мастер + 1 реплика).
+
+   - **categories (категории товаров)**
+
+     - Шардирование: **Не шардируется** (мало записей, часто кэшируются).
+     - Резервирование: **2 реплики** (1 мастер + 1 реплика).
+
+   - **addresses (адреса пользователей)**
+
+     - Шардирование: **user_id**
+     - Резервирование: **2 реплики**.
+
+   - **payment_methods (платежные методы)**
+     - Шардирование: **user_id**
+     - Резервирование: **3 реплики** (из-за важности данных).
+
+2. **Таблицы в Cassandra (высокая запись, глобальное распределение)**
+
+   - **products (товары)**
+
+     - Шардирование: **product_id** (партицирование по хэшу).
+     - Резервирование: **3 копии** (RF=3) в разных дата-центрах.
+
+   - **product_details (детали товаров)**
+
+     - Шардирование: **product_id** (colocated с products)
+     - Резервирование: **3 копии**.
+
+   - **shipments (доставка)**
+     - Шардирование: **order_id** (чтобы JOIN с orders был быстрым)
+     - Резервирование: **3 копии**.
+
+3. **Таблицы в DynamoDB (масштабируемость, высокая нагрузка)**
+
+   - **orders (заказы)**
+
+     - Шардирование:
+       - Partition Key: **user_id** (для быстрого доступа по пользователю).
+       - Sort Key: **order_date** (для временных запросов).
+     - Резервирование: **Автоматически** (3 AZ).
+
+   - **order_items (позиции заказа)**
+
+     - Шардирование:
+       - Partition Key: **order_id** (чтобы все товары заказа были в одном шарде).
+       - Sort Key: **product_id**.
+     - Резервирование: **Автоматически** (3 AZ).
+
+   - **inventory (остатки товаров)**
+     - Шардирование: **product_id** (чтобы обновления были атомарными).
+     - Резервирование: **Автоматически** (3 AZ).
+
+4. **Redis (кэш, временные данные)**
+
+   - **cart (корзины)**
+
+     - Шардирование: **user_id**.
+
+   - **sessions (сессии пользователей)**
+     - Шардирование: **session_id**
+     - Резервирование: **Каждый шард имеет 1 реплику**.
+
+5. **MongoDB (гибкие данные, отзывы)**
+
+   - **reviews (отзывы)**
+     - Шардирование: **product_id** (чтобы все отзывы товара были в одном шарде).
+     - Резервирование: **3 реплики** (1 мастер + 2 реплики).
+
+### **Список необходимых индексов по таблицам**
+
+#### **1. PostgreSQL (Users, Sellers, Categories, Addresses, Payment Methods)**
+
+| Таблица             | Поле                    | Тип индекса                | Обоснование                           |
+| ------------------- | ----------------------- | -------------------------- | ------------------------------------- |
+| **users**           | `email`                 | `UNIQUE`                   | Быстрый поиск пользователей           |
+| **users**           | `phone`                 | `UNIQUE`                   | Проверка уникальности телефона        |
+| **users**           | `is_blocked`            | `BTREE`                    | Фильтрация заблокированных            |
+| **sellers**         | `company_name`          | `BTREE`                    | Поиск по названию компании            |
+| **sellers**         | `contact_email`         | `UNIQUE`                   | Уникальность email продавца           |
+| **categories**      | `name`                  | `UNIQUE`                   | Уникальность категорий                |
+| **categories**      | `path`                  | `GIN` (для поиска по пути) | Иерархические запросы                 |
+| **addresses**       | `user_id`               | `BTREE`                    | Быстрый доступ к адресам пользователя |
+| **addresses**       | `(user_id, is_default)` | `BTREE`                    | Поиск адреса по умолчанию             |
+| **payment_methods** | `user_id`               | `BTREE`                    | Поиск методов оплаты пользователя     |
+| **payment_methods** | `(user_id, is_default)` | `BTREE`                    | Основной способ оплаты                |
+
+---
+
+#### **2. Cassandra (Products, Product Details, Shipments)**
+
+| Таблица             | Поле              | Тип индекса         | Обоснование              |
+| ------------------- | ----------------- | ------------------- | ------------------------ |
+| **products**        | `seller_id`       | `Secondary Index`   | Поиск товаров продавца   |
+| **products**        | `category_names`  | `SASI (LIKE-поиск)` | Фильтрация по категориям |
+| **product_details** | `tags`            | `Secondary Index`   | Поиск по тегам           |
+| **shipments**       | `tracking_number` | `Secondary Index`   | Отслеживание доставки    |
+| **shipments**       | `order_id`        | `Partition Key`     | Основной ключ            |
+
+---
+
+#### **3. DynamoDB (Orders, Order Items, Inventory)**
+
+| Таблица         | Поле              | Тип индекса                    | Обоснование                     |
+| --------------- | ----------------- | ------------------------------ | ------------------------------- |
+| **orders**      | `user_id` (PK)    | `Global Secondary Index (GSI)` | Поиск заказов пользователя      |
+| **orders**      | `status` (SK)     | `LSI (Local Secondary Index)`  | Фильтрация по статусу           |
+| **order_items** | `order_id` (PK)   | `-` (Partition Key)            | Все товары заказа в одном шарде |
+| **order_items** | `product_id`      | `GSI`                          | Поиск заказов по товару         |
+| **inventory**   | `product_id` (PK) | `-` (Partition Key)            | Быстрый доступ к остаткам       |
+
+---
+
+#### **4. MongoDB (Reviews)**
+
+| Поле         | Тип индекса                                | Обоснование                  |
+| ------------ | ------------------------------------------ | ---------------------------- |
+| `product_id` | `HASHED`                                   | Быстрый поиск отзывов товара |
+| `user_id`    | `HASHED`                                   | Поиск отзывов пользователя   |
+| `rating`     | `BTREE`                                    | Сортировка по рейтингу       |
+| `created_at` | `TTL` (если нужно автоматическое удаление) | Очистка старых отзывов       |
+
+---
+
+#### **5. Redis (Cart, Sessions)**
+
+| Данные                    | Структура                      | Обоснование              |
+| ------------------------- | ------------------------------ | ------------------------ |
+| **cart:{user_id}**        | `HASH` (product_id → quantity) | Быстрый доступ к корзине |
+| **sessions:{session_id}** | `STRING` (JSON)                | Быстрый доступ к сессии  |
+
+---
+
+### Полный список таблиц базы данных с описанием
+
+#### 1. Таблица `users` (Пользователи)
+
+**Назначение:** Хранение данных зарегистрированных пользователей
+**СУБД:** PostgreSQL (шардированная)
+**Индексы:**
+
+- PRIMARY KEY (`user_id`)
+- UNIQUE (`email`)
+- UNIQUE (`phone`)
+- INDEX (`is_blocked`)
+
+| Поле          | Тип       | Описание                      | Размер (байт) |
+| ------------- | --------- | ----------------------------- | ------------- |
+| user_id       | UUID (PK) | Уникальный идентификатор      | 16            |
+| name          | VARCHAR   | Полное имя                    | 50            |
+| email         | VARCHAR   | Электронная почта (уникальн.) | 50            |
+| phone         | VARCHAR   | Телефон (уникальный)          | 15            |
+| password_hash | VARCHAR   | Хеш пароля                    | 64            |
+| is_blocked    | BOOLEAN   | Статус блокировки             | 1             |
+| created_at    | TIMESTAMP | Дата создания                 | 8             |
+| updated_at    | TIMESTAMP | Дата обновления               | 8             |
+| metadata      | JSONB     | Доп. метаданные               | 100           |
+
+**Итого:** 312 байт на запись
+
+#### 2. Таблица `sellers` (Продавцы)
+
+**Назначение:** Информация о продавцах/поставщиках
+**СУБД:** PostgreSQL
+**Индексы:**
+
+- PRIMARY KEY (`seller_id`)
+- INDEX (`company_name`)
+- INDEX (`is_verified`)
+
+| Поле           | Тип       | Описание               | Размер (байт) |
+| -------------- | --------- | ---------------------- | ------------- |
+| seller_id      | UUID (PK) | Уникальный ID продавца | 16            |
+| company_name   | VARCHAR   | Название компании      | 50            |
+| contact_email  | VARCHAR   | Контактный email       | 50            |
+| contact_phone  | VARCHAR   | Контактный телефон     | 15            |
+| rating         | DECIMAL   | Рейтинг (0.0-5.0)      | 8             |
+| total_products | INTEGER   | Количество товаров     | 4             |
+| is_verified    | BOOLEAN   | Статус верификации     | 1             |
+| created_at     | TIMESTAMP | Дата создания          | 8             |
+| updated_at     | TIMESTAMP | Дата обновления        | 8             |
+
+**Итого:** 160 байт на запись
+
+#### 3. Таблица `products` (Товары)
+
+**Назначение:** Основная информация о товарах
+**СУБД:** Cassandra
+**Индексы:**
+
+- PRIMARY KEY (`product_id`)
+- SECONDARY INDEX (`seller_id`)
+- SASI INDEX (`category_names`)
+
+| Поле               | Тип        | Описание                 | Размер (байт) |
+| ------------------ | ---------- | ------------------------ | ------------- |
+| product_id         | UUID (PK)  | Уникальный ID товара     | 16            |
+| seller_id          | UUID       | ID продавца              | 16            |
+| name               | VARCHAR    | Название товара          | 100           |
+| description_short  | VARCHAR    | Краткое описание         | 200           |
+| description_full   | TEXT       | Полное описание          | 500           |
+| price              | DECIMAL    | Базовая цена             | 8             |
+| discount_price     | DECIMAL    | Цена со скидкой          | 8             |
+| main_image_url     | VARCHAR    | URL главного изображения | 200           |
+| gallery_image_urls | LIST<TEXT> | Доп. изображения         | 400           |
+| rating             | DECIMAL    | Средний рейтинг          | 8             |
+| review_count       | INT        | Количество отзывов       | 4             |
+| is_age_restricted  | BOOLEAN    | Возрастное ограничение   | 1             |
+| created_at         | TIMESTAMP  | Дата создания            | 8             |
+| updated_at         | TIMESTAMP  | Дата обновления          | 8             |
+
+**Итого:** ~1.4 КБ на запись
+
+#### 4. Таблица `product_details` (Детали товаров)
+
+**Назначение:** Дополнительные технические характеристики
+**СУБД:** Cassandra (colocated с products)
+**Индексы:**
+
+- PRIMARY KEY (`product_id`)
+
+| Поле           | Тип   | Описание              | Размер (байт) |
+| -------------- | ----- | --------------------- | ------------- |
+| product_id     | UUID  | Ссылка на товар (PK)  | 16            |
+| specifications | JSONB | Технические параметры | 500           |
+| features       | JSONB | Ключевые особенности  | 300           |
+| warranty_info  | TEXT  | Условия гарантии      | 200           |
+| shipping_info  | TEXT  | Условия доставки      | 200           |
+| tags           | LIST  | Теги товара           | 200           |
+
+**Итого:** ~1.4 КБ на запись
+
+#### 5. Таблица `inventory` (Остатки)
+
+**Назначение:** Учет товарных остатков
+**СУБД:** DynamoDB
+**Индексы:**
+
+- PRIMARY KEY (`product_id`)
+- GSI (`warehouse_id`)
+
+| Поле           | Тип       | Описание             | Размер (байт) |
+| -------------- | --------- | -------------------- | ------------- |
+| inventory_id   | UUID (PK) | Уникальный ID        | 16            |
+| product_id     | UUID      | Ссылка на товар      | 16            |
+| warehouse_qty  | INTEGER   | Доступное количество | 4             |
+| reserved_qty   | INTEGER   | В резерве            | 4             |
+| in_transit_qty | INTEGER   | В пути               | 4             |
+| last_restock   | TIMESTAMP | Последнее пополнение | 8             |
+
+**Итого:** 52 байта на запись
+
+#### 6. Таблица `categories` (Категории)
+
+**Назначение:** Иерархия категорий товаров
+**СУБД:** PostgreSQL
+**Индексы:**
+
+- PRIMARY KEY (`category_id`)
+- UNIQUE (`name`)
+- GIN (`path`)
+
+| Поле          | Тип       | Описание                                    | Размер (байт) |
+| ------------- | --------- | ------------------------------------------- | ------------- |
+| category_id   | UUID (PK) | Уникальный ID                               | 16            |
+| name          | VARCHAR   | Название категории                          | 50            |
+| path          | VARCHAR   | Полный путь (e.g. "Электроника/Телевизоры") | 100           |
+| parent_id     | UUID      | Родительская категория                      | 16            |
+| product_count | INTEGER   | Количество товаров                          | 4             |
+
+**Итого:** 186 байт на запись
+
+#### 7. Таблица `product_categories` (Связь товаров и категорий)
+
+**Назначение:** Многие-ко-многим между товарами и категориями
+**СУБД:** Cassandra
+**Индексы:**
+
+- PRIMARY KEY (`product_id`, `category_id`)
+
+| Поле        | Тип  | Описание          | Размер (байт) |
+| ----------- | ---- | ----------------- | ------------- |
+| product_id  | UUID | ID товара (PK)    | 16            |
+| category_id | UUID | ID категории (PK) | 16            |
+
+**Итого:** 32 байта на запись
+
+#### 8. Таблица `orders` (Заказы)
+
+**Назначение:** Информация о заказах
+**СУБД:** DynamoDB
+**Индексы:**
+
+- PRIMARY KEY (`order_id`)
+- GSI (`user_id`)
+- LSI (`status`)
+
+| Поле          | Тип       | Описание           | Размер (байт) |
+| ------------- | --------- | ------------------ | ------------- |
+| order_id      | UUID (PK) | Уникальный ID      | 16            |
+| user_id       | UUID      | ID покупателя      | 16            |
+| status        | VARCHAR   | Статус заказа      | 20            |
+| subtotal      | DECIMAL   | Сумма без доставки | 8             |
+| tax           | DECIMAL   | Налоги             | 8             |
+| shipping_cost | DECIMAL   | Стоимость доставки | 8             |
+| total         | DECIMAL   | Итоговая сумма     | 8             |
+| created_at    | TIMESTAMP | Дата создания      | 8             |
+| updated_at    | TIMESTAMP | Дата обновления    | 8             |
+
+**Итого:** 100 байт на запись
+
+#### 9. Таблица `order_items` (Позиции заказа)
+
+**Назначение:** Состав заказов
+**СУБД:** DynamoDB (colocated с orders)
+**Индексы:**
+
+- PRIMARY KEY (`order_id`, `product_id`)
+
+| Поле          | Тип       | Описание                     | Размер (байт) |
+| ------------- | --------- | ---------------------------- | ------------- |
+| order_item_id | UUID (PK) | Уникальный ID позиции        | 16            |
+| order_id      | UUID      | ID заказа                    | 16            |
+| product_id    | UUID      | ID товара                    | 16            |
+| product_name  | VARCHAR   | Название на момент заказа    | 100           |
+| product_image | VARCHAR   | Изображение на момент заказа | 200           |
+| unit_price    | DECIMAL   | Цена за единицу              | 8             |
+| quantity      | INTEGER   | Количество                   | 4             |
+| total_price   | DECIMAL   | Общая стоимость позиции      | 8             |
+
+**Итого:** 368 байт на запись
+
+#### 10. Таблица `cart` (Корзины)
+
+**Назначение:** Временные корзины пользователей
+**СУБД:** Redis
+**Структура:** Hash (user_id → JSON)
+**TTL:** 30 дней
+
+| Поле       | Тип       | Описание        | Размер (байт) |
+| ---------- | --------- | --------------- | ------------- |
+| cart_id    | UUID (PK) | Уникальный ID   | 16            |
+| user_id    | UUID      | ID пользователя | 16            |
+| updated_at | TIMESTAMP | Дата обновления | 8             |
+
+**Итого:** 40 байт + товары
+
+#### 11. Таблица `cart_items` (Товары в корзине)
+
+**Назначение:** Состав корзин
+**СУБД:** Redis
+**Структура:** Hash (cart_id:product_id → quantity)
+
+| Поле       | Тип       | Описание        | Размер (байт) |
+| ---------- | --------- | --------------- | ------------- |
+| cart_id    | UUID      | ID корзины      | 16            |
+| product_id | UUID      | ID товара       | 16            |
+| quantity   | INTEGER   | Количество      | 4             |
+| added_at   | TIMESTAMP | Дата добавления | 8             |
+
+**Итого:** 44 байта на позицию
+
+#### 12. Таблица `reviews` (Отзывы)
+
+**Назначение:** Пользовательские отзывы о товарах
+**СУБД:** MongoDB (шардированная)
+**Индексы:**
+
+- HASHED (`product_id`)
+- HASHED (`user_id`)
+- BTREE (`rating`)
+
+| Поле        | Тип       | Описание               | Размер (байт) |
+| ----------- | --------- | ---------------------- | ------------- |
+| review_id   | UUID (PK) | Уникальный ID отзыва   | 16            |
+| user_id     | UUID      | ID автора              | 16            |
+| product_id  | UUID      | ID товара              | 16            |
+| order_id    | UUID      | ID заказа              | 16            |
+| rating      | INTEGER   | Оценка (1-5)           | 4             |
+| title       | VARCHAR   | Заголовок отзыва       | 100           |
+| comment     | TEXT      | Текст отзыва           | 500           |
+| images      | ARRAY     | Ссылки на изображения  | 200           |
+| is_verified | BOOLEAN   | Подтвержденная покупка | 1             |
+| created_at  | TIMESTAMP | Дата создания          | 8             |
+
+**Итого:** ~877 байт на запись
+
+#### 13. Таблица `addresses` (Адреса)
+
+**Назначение:** Адресная книга пользователей
+**СУБД:** PostgreSQL
+**Индексы:**
+
+- PRIMARY KEY (`address_id`)
+- INDEX (`user_id`)
+- INDEX (`is_default`)
+
+| Поле        | Тип       | Описание           | Размер (байт) |
+| ----------- | --------- | ------------------ | ------------- |
+| address_id  | UUID (PK) | Уникальный ID      | 16            |
+| user_id     | UUID      | ID пользователя    | 16            |
+| type        | VARCHAR   | Тип (дом/работа)   | 10            |
+| recipient   | VARCHAR   | Получатель         | 50            |
+| line1       | VARCHAR   | Адрес строка 1     | 100           |
+| line2       | VARCHAR   | Адрес строка 2     | 100           |
+| city        | VARCHAR   | Город              | 30            |
+| state       | VARCHAR   | Область/штат       | 30            |
+| postal_code | VARCHAR   | Почтовый индекс    | 10            |
+| country     | VARCHAR   | Страна             | 30            |
+| phone       | VARCHAR   | Контактный телефон | 15            |
+| is_default  | BOOLEAN   | Адрес по умолчанию | 1             |
+
+**Итого:** 398 байт на запись
+
+#### 14. Таблица `payment_methods` (Способы оплаты)
+
+**Назначение:** Платежные данные пользователей
+**СУБД:** PostgreSQL (encrypted)
+**Индексы:**
+
+- PRIMARY KEY (`payment_method_id`)
+- INDEX (`user_id`)
+- INDEX (`is_default`)
+
+| Поле              | Тип       | Описание             | Размер (байт) |
+| ----------------- | --------- | -------------------- | ------------- |
+| payment_method_id | UUID (PK) | Уникальный ID        | 16            |
+| user_id           | UUID      | ID пользователя      | 16            |
+| type              | VARCHAR   | Тип (card/paypal)    | 10            |
+| details           | JSONB     | Зашифрованные данные | 200           |
+| is_default        | BOOLEAN   | Способ по умолчанию  | 1             |
+| added_at          | TIMESTAMP | Дата добавления      | 8             |
+
+**Итого:** 251 байт на запись
+
+#### 15. Таблица `shipments` (Доставка)
+
+**Назначение:** Информация о доставке заказов
+**СУБД:** Cassandra
+**Индексы:**
+
+- PRIMARY KEY (`shipment_id`)
+- SECONDARY INDEX (`tracking_number`)
+
+| Поле               | Тип       | Описание                | Размер (байт) |
+| ------------------ | --------- | ----------------------- | ------------- |
+| shipment_id        | UUID (PK) | Уникальный ID           | 16            |
+| order_id           | UUID      | ID заказа               | 16            |
+| carrier            | VARCHAR   | Перевозчик              | 20            |
+| tracking_number    | VARCHAR   | Трек-номер              | 50            |
+| status             | VARCHAR   | Текущий статус          | 20            |
+| shipped_at         | TIMESTAMP | Дата отправки           | 8             |
+| estimated_delivery | TIMESTAMP | Предполагаемая доставка | 8             |
+| delivered_at       | TIMESTAMP | Фактическая доставка    | 8             |
+
+**Итого:** 146 байт на запись
+
+#### 16. Таблица `search_index` (Поисковый индекс)
+
+**Назначение:** Оптимизация поиска товаров
+**СУБД:** Elasticsearch
+**Индексы:**
+
+- PRIMARY KEY (`product_id`)
+- FULLTEXT (`search_vector`)
+
+| Поле          | Тип       | Описание             | Размер (байт) |
+| ------------- | --------- | -------------------- | ------------- |
+| product_id    | UUID (PK) | ID товара            | 16            |
+| search_vector | TEXT      | Поисковый вектор     | 500           |
+| suggest_terms | ARRAY     | Варианты подсказок   | 200           |
+| facets        | JSONB     | Фильтруемые атрибуты | 300           |
+
+**Итого:** ~1 КБ на запись
+
+### Общие характеристики базы данных:
+
+1. **Общий объем:** ~50-100 млн записей основных таблиц
+2. **Средний размер записи:** 200-1500 байт
+3. **Ежедневный прирост:**
+
+   - Заказы: ~100,000
+   - Отзывы: ~50,000
+   - Операции с корзиной: ~1,000,000
+
+4. **Шардирование:**
+
+   - Пользователи: по `user_id`
+   - Товары: по `category_id`
+   - Отзывы: по `product_id`
+
+5. **Репликация:**
+   - PostgreSQL: 1 мастер + 2 реплики
+   - Cassandra: RF=3 (3 копии)
+   - Redis: Каждый шард имеет реплику
+
+---
+
+### Клиентские библиотеки / интеграции
+
+Для работы с выбранными СУБД используются следующие проверенные библиотеки и инструменты:
+
+#### **PostgreSQL**
+
+- **Python**:
+  - `psycopg2` (основной драйвер)
+  - `SQLAlchemy` (ORM)
+  - `asyncpg` (асинхронный доступ)
+- **Node.js**:
+  - `Sequelize` (ORM)
+  - `pg` (основной драйвер)
+- **Java**:
+  - `Hibernate` (ORM)
+  - `PostgreSQL JDBC Driver`
+
+#### **Cassandra**
+
+- **Python**:
+  - `cassandra-driver` (официальный драйвер)
+  - `Datastax Python Driver`
+- **Node.js**:
+  - `cassandra-driver` (официальный драйвер)
+- **Java**:
+  - `DataStax Java Driver`
+
+#### **DynamoDB**
+
+- **Python**:
+  - `boto3` (AWS SDK)
+- **Node.js**:
+  - `aws-sdk` (официальный SDK)
+- **Java**:
+  - `AWS SDK for Java 2.x`
+
+#### **MongoDB**
+
+- **Python**:
+  - `pymongo` (официальный драйвер)
+  - `Motor` (асинхронный драйвер)
+- **Node.js**:
+  - `mongoose` (ORM)
+  - `mongodb` (официальный драйвер)
+- **Java**:
+  - `MongoDB Java Driver`
+
+#### **Redis**
+
+- **Python**:
+  - `redis-py` (официальный клиент)
+  - `aioredis` (асинхронный клиент)
+- **Node.js**:
+  - `ioredis` (расширенный клиент)
+- **Java**:
+  - `Jedis`
+  - `Lettuce` (реактивный клиент)
+
+#### **Elasticsearch**
+
+- **Python**:
+  - `elasticsearch-py` (официальный клиент)
+  - `elasticsearch-dsl` (высокоуровневый API)
+- **Node.js**:
+  - `@elastic/elasticsearch` (официальный клиент)
+- **Java**:
+  - `Elasticsearch Java High Level REST Client`
+
+#### **AWS S3**
+
+- **Python**:
+  - `boto3` (официальный SDK)
+- **Node.js**:
+  - `aws-sdk` (официальный SDK)
+- **Java**:
+  - `AWS SDK for Java`
+
+---
+
+### Балансировка запросов / мультиплексирование подключений
+
+Для обеспечения высокой доступности и распределения нагрузки используются следующие решения:
+
+#### **PostgreSQL**
+
+- **PgBouncer**:
+  - Пул соединений для минимизации накладных расходов
+  - Поддержка до 10,000 соединений на инстанс
+- **HAProxy**:
+  - Балансировка read-запросов между репликами
+  - Автоматическое исключение нерабочих нод
+
+#### **Cassandra**
+
+- **Native Driver Balancing**:
+  - Round-robin балансировка между нодами
+  - Token-aware routing для оптимального распределения
+- **DataStax Load Balancer**:
+  - Интеллектуальное распределение запросов
+  - Мониторинг задержек
+
+#### **DynamoDB**
+
+- **AWS ALB**:
+  - Балансировка API-запросов
+  - Поддержка автоматического масштабирования
+- **DAX** (DynamoDB Accelerator):
+  - Кэширование часто запрашиваемых данных
+  - Снижение нагрузки на основную БД
+
+#### **MongoDB**
+
+- **MongoDB Connector**:
+  - Встроенная балансировка в драйверах
+  - Read Preference (primary/secondary/nearest)
+- **MongoS Router**:
+  - Запросы к шардированным кластерам
+  - Агрегация результатов
+
+#### **Redis**
+
+- **Redis Cluster Proxy**:
+  - Единая точка входа для кластера
+  - Автоматическое перенаправление запросов
+- **Twemproxy (nutcracker)**:
+  - Поддержка шардирования
+  - Пул соединений
+
+#### **Elasticsearch**
+
+- **Coordinating Nodes**:
+  - Распределение поисковых запросов
+  - Агрегация результатов
+- **NGINX**:
+  - Балансировка HTTP-запросов
+  - Терминирование SSL
+
+#### **Общая инфраструктура**
+
+- **NGINX Plus**:
+  - L7 балансировка для API
+  - Rate limiting (10,000 RPS на ноду)
+  - Health checks каждые 5 сек
+- **Envoy Proxy**:
+  - Service mesh для микросервисов
+  - Circuit breaking
+- **Amazon ALB**:
+  - Балансировка между AZ
+  - Поддержка gRPC/HTTP2
+
+---
+
+**Оптимизации:**
+
+1. Keep-alive соединения для всех СУБД
+2. Экспоненциальный backoff при переподключении
+3. Локальные кэши драйверов (TTL 1-5 сек)
+4. Circuit breakers на уровне приложения
+
+Эта конфигурация обеспечивает:
+
+- 99.99% доступности для критических путей
+- Задержки <50ms для 95% запросов
+- Автоматическое восстановление при сбоях
 <!--
-
-````mermaid
-erDiagram
-    users ||--o{ orders : "1:N"
-    users ||--o{ cart : "1:1"
-    users ||--o{ reviews : "1:N"
-    users ||--o{ sessions : "1:N"
-    users ||--o{ auth_tokens : "1:N"
-
-    sellers ||--o{ products : "1:N"
-    sellers ||--o{ reviews : "1:N"
-
-    products ||--o{ product_categories : "1:N"
-    products ||--o{ product_images : "1:N"
-    products ||--o{ order_items : "1:N"
-    products ||--o{ cart_items : "1:N"
-    products ||--o{ reviews : "1:N"
-    products ||--|| product_search_index : "1:1"
-
-    categories ||--o{ product_categories : "1:N"
-
-    orders ||--o{ order_items : "1:N"
-    orders ||--|| logistics : "1:1"
-
-    cart ||--o{ cart_items : "1:N"
-
-    reviews ||--o{ review_images : "1:N"
-    reviews }|--|| order_items : "N:1"
-
-    users {
-        UUID user_id PK
-        String name
-        String email UK
-        String phone UK
-        String password_hash
-        Boolean is_blocked "default: false"
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    sellers {
-        UUID seller_id PK
-        String company_name
-        String contact_email
-        String contact_phone
-        Decimal rating
-        Boolean is_blocked "default: false"
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    categories {
-        UUID category_id PK
-        String name UK
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    products {
-        UUID product_id PK
-        UUID seller_id FK
-        String name
-        Text description
-        Decimal price
-        Integer stock_quantity
-        Decimal rating
-        Boolean is_blocked "default: false"
-        Boolean is_age_restricted "default: false"
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    product_categories {
-        UUID product_category_id PK
-        UUID product_id FK
-        UUID category_id FK
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    product_images {
-        UUID image_id PK
-        UUID product_id FK
-        String image_url
-        Boolean is_primary "default: false"
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    orders {
-        UUID order_id PK
-        UUID user_id FK
-        String status
-        Decimal total_amount
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    order_items {
-        UUID order_item_id PK
-        UUID order_id FK
-        UUID product_id FK
-        Integer quantity
-        Decimal price_at_purchase
-        Timestamp purchase_date
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    cart {
-        UUID cart_id PK
-        UUID user_id FK
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    cart_items {
-        UUID cart_item_id PK
-        UUID cart_id FK
-        UUID product_id FK
-        Integer quantity
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    reviews {
-        UUID review_id PK
-        UUID user_id FK
-        UUID product_id FK
-        UUID order_item_id FK
-        UUID seller_id FK
-        Integer rating
-        Text comment
-        String status "default: 'pending'"
-        String deleted_by "null"
-        String user_name
-        String product_name
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    review_images {
-        UUID image_id PK
-        UUID review_id FK
-        String image_url
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    logistics {
-        UUID logistics_id PK
-        UUID order_id FK
-        String tracking_number
-        String status
-        Timestamp shipped_at
-        Timestamp delivered_at
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    sessions {
-        UUID session_id PK
-        UUID user_id FK
-        String session_token UK
-        Timestamp expires_at
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    auth_tokens {
-        UUID token_id PK
-        UUID user_id FK
-        String token UK
-        String token_type
-        Timestamp expires_at
-        Timestamp created_at
-        Timestamp updated_at
-    }
-
-    product_search_index {
-        UUID search_id PK
-        UUID product_id FK
-        Jsonb search_data
-        Timestamp indexed_at
-    }
-``` -->
-
----
-
----
-
-Спецификация СУБД:
-Компонент СУБД Обоснование
-Основные данные PostgreSQL Транзакционные данные, ACID требования
-Сессии/токены Redis Быстрый доступ, временные данные
-Поиск товаров Elasticsearch Полнотекстовый поиск, фасетная навигация
-Медиафайлы S3 + CDN Хранение и быстрая доставка бинарных данных
-Заказы DynamoDB Высокая доступность, масштабируемость
-Корзины Redis Временные данные, высокая частота обновлений
-Отзывы MongoDB Гибкая схема, простота агрегаций
-Логистика Cassandra Высокая запись, временные ряды
-Кэш рекомендаций Redis Персонализированные данные, быстрый доступ
-Аналитика Redshift OLAP-обработка, большие объемы данных
-
 
 ```mermaid
 erDiagram
@@ -1173,6 +1673,139 @@ erDiagram
     }
 ```
 
+-->
+
+---
+
+<a name="block7"></a>
+
+## **7. Алгоритмы**
+
+### Алгоритмы управления ресурсами в высоконагруженном сервисе (аналог Titus от Netflix)
+
+#### 1. **Проблема: Шум когерентности (Coherence Noise)**
+
+**Контекст:**
+
+- Современные CPU с NUMA-архитектурой имеют иерархию кэшей (L1/L2 — ядро, L3 — сокет)
+- Гипертреды разделяют кэши L1/L2, что приводит к конкуренции за ресурсы
+- Контейнеры, размещенные на одном сокете, создают interference noise из-за:
+  - Перегрузки шины памяти
+  - Инвалидации кэш-линий
+  - Contention на общих ресурсах (например, LLC)
+
+**Пример плохого распределения:**
+
+```mermaid
+graph TD
+    Socket0[Сокет 0 (L3 Shared)] --> Core0[Ядро 0]
+    Core0 --> ThreadA[Контейнер A]
+    Core0 --> ThreadB[Контейнер B]
+    Socket0 --> Core1[Ядро 1]
+    Core1 --> ThreadC[Контейнер A]
+    Core1 --> ThreadD[Контейнер B]
+```
+
+#### 2. **Алгоритм: Dynamic NUMA-Aware Scheduler (DNAS)**
+
+**Принципы работы:**
+
+1. **Классификация нагрузок**:
+
+   - **Latency-Sensitive (LS)**: Микросервисы API (требуют низких задержек)
+   - **Throughput-Optimized (TO)**: Пакетная обработка (требуют высокой пропускной способности)
+
+2. **Распределение ресурсов**:
+
+```python
+def allocate_container(container):
+    if container.type == "LS":
+        # Выделяем выделенные ядра без гипертредов
+        cores = get_dedicated_cores(socket=least_loaded_numa_node())
+        assign_cpuset(container, cores)
+    else:
+        # Используем гипертреды на менее загруженном сокете
+        cores = get_hyperthreads(socket=find_underutilized_socket())
+        assign_cpuset(container, cores)
+```
+
+3. **Метрики оптимизации**:
+   - LLC Miss Rate (<5% для LS-контейнеров)
+   - IPC (Instructions Per Cycle) > 2.5 для TO-контейнеров
+   - NUMA Distance Penalty (минимизация межсокетных обращений)
+
+#### 3. **Реализация на Linux**:
+
+**Компоненты:**
+
+- **cgroups v2** для изоляции CPU
+- **eBPF-пробы** для мониторинга:
+  ```c
+  // Отслеживание LLC misses
+  SEC("perf_event/llc_miss")
+  int bpf_llc_miss(struct bpf_perf_event_data *ctx) {
+      u32 cpu = bpf_get_smp_processor_id();
+      u64 *count = bpf_map_lookup_elem(&llc_misses, &cpu);
+      if (count) (*count)++;
+      return 0;
+  }
+  ```
+- **Алгоритм балансировки**:
+  ```go
+  func rebalance() {
+      for {
+          stats := collect_metrics()
+          if stats.llc_miss > THRESHOLD {
+              migrate_container(stats.container, target_numa_node())
+          }
+          time.Sleep(10 * time.Second)
+      }
+  }
+  ```
+
+#### 4. **Сравнение с CFS**:
+
+| Параметр        | CFS                | DNAS                       |
+| --------------- | ------------------ | -------------------------- |
+| Частота решений | Каждые 5 мс        | Каждые 10 сек              |
+| Учет топологии  | Нет                | NUMA-aware                 |
+| Приоритизация   | По vruntime        | По классу нагрузки (LS/TO) |
+| Overhead        | Высокий (O(log n)) | Низкий (O(1) для миграций) |
+
+#### 5. **Пример работы**:
+
+1. **Детекция аномалии**:
+   - Контейнер API-gateway имеет рост LLC misses до 15%
+2. **Принятие решения**:
+   - Модель предсказывает необходимость миграции на отдельный сокет
+3. **Действие**:
+   ```bash
+   echo "migrate 1234 numa_node=1" > /sys/fs/cgroup/dnas/actions
+   ```
+4. **Результат**:
+   - Задержка API снижается с 50ms до 12ms
+   - Пропускная способность LLC увеличивается на 40%
+
+#### 6. **Оптимизации для СУБД**:
+
+Для PostgreSQL (шард users на NUMA-узле 0):
+
+```sql
+ALTER SYSTEM SET numa_memory_preferred_node = 0;
+```
+
+Для Redis:
+
+```bash
+taskset -c 0-3 redis-server --bind_cpu 0-3
+```
+
+**Ключевые преимущества**:
+
+- Снижение interference noise на 60-70%
+- Гарантированная пропускная способность для критичных контейнеров
+- Автоматическая адаптация к изменению нагрузок
+
 ---
 
 ## **Список источников:**
@@ -1193,5 +1826,7 @@ erDiagram
 13. http://aws.amazon.com/route53/
 14. https://www.cloudflare.com/ru-ru/
 15. https://docs.amazonaws.cn/en_us/eks/latest/userguide/aws-load-balancer-controller.html
+
 ```
-````
+
+```

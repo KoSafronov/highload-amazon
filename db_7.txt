@@ -1,0 +1,170 @@
+Table users {
+  user_id uuid [pk]
+  name varchar
+  email varchar [unique]
+  phone varchar [unique]
+  password_hash varchar
+  is_blocked boolean
+  created_at timestamp
+  updated_at timestamp
+  metadata jsonb
+}
+
+Table sellers {
+  seller_id uuid [pk]
+  company_name varchar
+  contact_email varchar
+  contact_phone varchar
+  rating decimal
+  total_products integer
+  is_verified boolean
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table products {
+  product_id uuid [pk]
+  seller_id uuid [ref: > sellers.seller_id]
+  name varchar
+  description_short varchar
+  description_full text
+  price decimal
+  discount_price decimal
+  main_image_url varchar
+  gallery_image_urls varchar[]
+  rating decimal
+  review_count integer
+  is_age_restricted boolean
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table product_details {
+  product_id uuid [pk, ref: > products.product_id]
+  specifications jsonb
+  features jsonb
+  warranty_info text
+  shipping_info text
+  tags varchar[]
+}
+
+Table inventory {
+  inventory_id uuid [pk]
+  product_id uuid [ref: > products.product_id]
+  warehouse_qty integer
+  reserved_qty integer
+  in_transit_qty integer
+  last_restock timestamp
+}
+
+Table categories {
+  category_id uuid [pk]
+  name varchar
+  path varchar
+  parent_id uuid [ref: > categories.category_id]
+  product_count integer
+}
+
+Table product_categories {
+  product_id uuid [ref: > products.product_id]
+  category_id uuid [ref: > categories.category_id]
+  indexes {
+    (product_id, category_id) [pk]
+  }
+}
+
+Table orders {
+  order_id uuid [pk]
+  user_id uuid [ref: > users.user_id]
+  status varchar
+  subtotal decimal
+  tax decimal
+  shipping_cost decimal
+  total decimal
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table order_items {
+  order_item_id uuid [pk]
+  order_id uuid [ref: > orders.order_id]
+  product_id uuid [ref: > products.product_id]
+  product_name varchar
+  product_image varchar
+  unit_price decimal
+  quantity integer
+  total_price decimal
+}
+
+Table cart {
+  cart_id uuid [pk]
+  user_id uuid [ref: - users.user_id]
+  updated_at timestamp
+}
+
+Table cart_items {
+  cart_item_id uuid [pk]
+  cart_id uuid [ref: > cart.cart_id]
+  product_id uuid [ref: > products.product_id]
+  quantity integer
+  added_at timestamp
+}
+
+Table reviews {
+  review_id uuid [pk]
+  user_id uuid [ref: > users.user_id]
+  product_id uuid [ref: > products.product_id]
+  order_id uuid [ref: > orders.order_id]
+  rating integer
+  title varchar
+  comment text
+  images varchar[]
+  is_verified boolean
+  created_at timestamp
+}
+
+Table addresses {
+  address_id uuid [pk]
+  user_id uuid [ref: > users.user_id]
+  type varchar
+  recipient varchar
+  line1 varchar
+  line2 varchar
+  city varchar
+  state varchar
+  postal_code varchar
+  country varchar
+  phone varchar
+  is_default boolean
+}
+
+Table payment_methods {
+  payment_method_id uuid [pk]
+  user_id uuid [ref: > users.user_id]
+  type varchar
+  details jsonb
+  is_default boolean
+  added_at timestamp
+}
+
+Table shipments {
+  shipment_id uuid [pk]
+  order_id uuid [ref: > orders.order_id]
+  carrier varchar
+  tracking_number varchar
+  status varchar
+  shipped_at timestamp
+  estimated_delivery timestamp
+  delivered_at timestamp
+}
+
+Table search_index {
+  product_id uuid [pk, ref: > products.product_id]
+  search_vector varchar
+  suggest_terms varchar[]
+  facets jsonb
+}
+
+
+
+https://dbdiagram.io/d/6615cbed03593b6b619cdf21
