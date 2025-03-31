@@ -780,8 +780,9 @@ BOOLEAN:
 - **Автоматический failover**: MongoDB Replica Sets и Redis Cluster обеспечивают автоматическое переключение в случае сбоя.
 - **Резервное копирование**: Регулярное создание бэкапов и их хранение в облачном хранилище.
 - **Мониторинг**: Использование инструментов мониторинга (Prometheus, Grafana) для отслеживания состояния баз данных и своевременного реагирования на сбои.
+<!--
 
-```mermaid
+````mermaid
 erDiagram
     users ||--o{ orders : "1:N"
     users ||--o{ cart : "1:1"
@@ -965,7 +966,7 @@ erDiagram
         Jsonb search_data
         Timestamp indexed_at
     }
-```
+``` -->
 
 ---
 
@@ -984,14 +985,15 @@ erDiagram
 Кэш рекомендаций Redis Персонализированные данные, быстрый доступ
 Аналитика Redshift OLAP-обработка, большие объемы данных
 
-```
+````
+
 mermaid
 erDiagram
-    users ||--o{ orders : "places"
-    users ||--o{ cart : "owns"
-    users ||--o{ reviews : "writes"
-    users ||--o{ addresses : "has"
-    users ||--o{ payment_methods : "has"
+users ||--o{ orders : "places"
+users ||--o{ cart : "owns"
+users ||--o{ reviews : "writes"
+users ||--o{ addresses : "has"
+users ||--o{ payment_methods : "has"
 
     sellers ||--o{ products : "sells"
     sellers ||--o{ reviews : "receives"
@@ -1170,6 +1172,7 @@ erDiagram
         String[] suggest_terms
         Jsonb facets
     }
+
 ```
 
 ---
@@ -1192,3 +1195,4 @@ erDiagram
 13. http://aws.amazon.com/route53/
 14. https://www.cloudflare.com/ru-ru/
 15. https://docs.amazonaws.cn/en_us/eks/latest/userguide/aws-load-balancer-controller.html
+```
