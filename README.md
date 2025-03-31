@@ -788,7 +788,7 @@ BOOLEAN:
 
 ---
 
-![amazon.com Website Traffic Demographics](img/upd_db_2025-03-31.png)
+![amazon.com Website Traffic Demographics](img/upd_db_2025-03-31_1.png)
 
 ---
 
