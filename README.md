@@ -408,20 +408,21 @@ BOOLEAN:
 ![DB scheme](img/upd_db_2025-04-07.png)
 
 
-| Таблица                    | Рекомендуемая СУБД                 | Особенности                                                    |
-|---------------------------|------------------------------------|----------------------------------------------------------------|
-| users                     | PostgreSQL / CockroachDB           | Авторизация, уникальные индексы                                |
-| sellers                   | PostgreSQL / CockroachDB           | Транзакции, отношения                                          |
-| products                  | PostgreSQL + Redis / DynamoDB      | Каталог + кэш                                                  |
-| categories, product_categories | PostgreSQL                    | Иерархия и связи                                               |
-| characteristics_product   | PostgreSQL / MongoDB               | Гибкость JSON                                                  |
-| cart_items                | PostgreSQL / Redis                 | Частое чтение + возможность сброса кэша                        |
-| orders, order_items       | PostgreSQL / YugabyteDB            | Важна согласованность и транзакционность                       |
-| reviews                   | MongoDB / Cassandra                | Частые записи, документо-ориентированная модель                |
-| addresses                 | PostgreSQL                         | Простые CRUD операции                                          |
-| payment_methods           | PostgreSQL                         | Конфиденциальные данные, надёжность                            |
-| shipments                 | Cassandra / ScyllaDB               | Массовые обновления, не нужны JOIN'ы                           |
-| search_index              | Elasticsearch / OpenSearch         | Полнотекстовый поиск                                           |
+| Таблица                    | Рекомендуемые СУБД                    | Обоснование                                                                |
+|---------------------------|----------------------------------------|----------------------------------------------------------------------------|
+| users                     | PostgreSQL                             | Авторизация, уникальные индексы, критичность транзакций                    |
+| sellers                   | PostgreSQL                             | Связи, отчётность, высокая точность                                        |
+| products                  | DynamoDB + Redis (кэш)                 | Горизонтальное масштабирование каталога, быстрая отдача из кэша            |
+| categories, product_categories | DynamoDB                          | Простые связи и дерево категорий, нечастые изменения                       |
+| characteristics_product   | MongoDB                                | Гибкие JSON-документы, высокая write-throughput                            |
+| cart_items                | Redis Cluster                          | Высокочастотные чтения, сессионные данные, TTL                             |
+| orders, order_items       | YugabyteDB                             | Шардируемая транзакционная СУБД, высокая доступность                       |
+| reviews                   |             MongoDB                    | Массовые записи, быстрые запросы по ключам, шардирование по product_id     |
+| addresses                 | DynamoDB                               | Простой CRUD, нет сложных связей                                           |
+| payment_methods           | DynamoDB (с TTL + шифрованием)         | Безопасность, высокая скорость, простота                                   |
+| shipments                 |            Cassandra                   | Постоянные обновления статусов, минимальная задержка                       |
+| search_index              | Elasticsearch                          | Полнотекстовый поиск, фильтрация, suggest API                              |
+
 
 ---
 Схема шардирования представлена в файле <a href="./shard_scheme.md">shard_scheme.md</a>
