@@ -405,7 +405,7 @@ BOOLEAN:
 
 
 <!-- ![DB scheme](img/db_type.png) -->
-![DB scheme](img/upd_db_2025-04-07.png)
+![DB scheme](img/upd_db_2025-04-07_1.png)
 
 
 | Таблица                    | Рекомендуемые СУБД                    | Обоснование                                                                |
