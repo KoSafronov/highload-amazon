@@ -414,10 +414,10 @@ BOOLEAN:
 | sellers                   | PostgreSQL                             | Связи, отчётность, высокая точность                                        |
 | products                  | DynamoDB + Redis (кэш)                 | Горизонтальное масштабирование каталога, быстрая отдача из кэша            |
 | categories, product_categories | DynamoDB                          | Простые связи и дерево категорий, нечастые изменения                       |
-| characteristics_product   | MongoDB                                | Гибкие JSON-документы, высокая write-throughput                            |
+| characteristics_product   | Cassandra                                | Гибкие JSON-документы, высокая write-throughput                            |
 | cart_items                | Redis Cluster                          | Высокочастотные чтения, сессионные данные, TTL                             |
 | orders, order_items       | YugabyteDB                             | Шардируемая транзакционная СУБД, высокая доступность                       |
-| reviews                   |             MongoDB                    | Массовые записи, быстрые запросы по ключам, шардирование по product_id     |
+| reviews                   |             Cassandra                    | Массовые записи, быстрые запросы по ключам, шардирование по product_id     |
 | addresses                 | DynamoDB                               | Простой CRUD, нет сложных связей                                           |
 | payment_methods           | DynamoDB (с TTL + шифрованием)         | Безопасность, высокая скорость, простота                                   |
 | shipments                 |            Cassandra                   | Постоянные обновления статусов, минимальная задержка                       |
