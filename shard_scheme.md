@@ -38,25 +38,6 @@
 
 ─────────────────────────────────────────────────────────────────────────────
 
-                        [ SHARD GROUP: REVIEWS ]
-             ┌────────────────────────────┐
-             │      REVIEW SHARDING       │
-             └────────────────────────────┘
-                      Shard Key: `product_id`
-                      Strategy: Hash Modulo (mod N)
-                      Storage: MongoDB or Cassandra
-
-                  ┌────────────┬────────────┬────────────┐
-                  │ Shard-A    │ Shard-B    │ Shard-C    │
-                  └────────────┴────────────┴────────────┘
-                  │ Reviews    │ Reviews    │ Reviews    │
-                  └────────────┴────────────┴────────────┘
-                       ▲             ▲             ▲
-                       │             │             │
-                   2x Replica     2x Replica     2x Replica
-
-─────────────────────────────────────────────────────────────────────────────
-
                         [ SHARD GROUP: SHIPMENTS ]
              ┌────────────────────────────┐
              │     SHIPMENT SHARDING      │
